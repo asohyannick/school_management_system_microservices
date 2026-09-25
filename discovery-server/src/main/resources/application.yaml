@@ -1,16 +1,64 @@
+# ============================================================
+#  DISCOVERY SERVER (Eureka)
+#  Standalone registry — does NOT use config-server
+#  (it must start first, so it cannot depend on anything)
+# ============================================================
+
+server:
+  port: 8761
+
 spring:
   application:
     name: discovery-server
+
+  # ── Basic auth for dashboard + /eureka/** registry API ────
+  # Clients register with http://USER:PASSWORD@discovery-server:8761/eureka/
+  security:
+    user:
+      name: ${EUREKA_USER:eureka}
+      password: ${EUREKA_PASSWORD:eureka}
+
+# ── Eureka ──────────────────────────────────────────────────
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    # This IS the registry: don't register with / fetch from ourselves
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    # Dev: evict dead instances quickly instead of keeping them "just in case".
+    # Set EUREKA_SELF_PRESERVATION=true in production.
+    enable-self-preservation: ${EUREKA_SELF_PRESERVATION:false}
+    eviction-interval-timer-in-ms: 10000
+    # Single node: no peers to wait for on startup
+    wait-time-in-ms-when-sync-empty: 0
+
+# ── Actuator / Prometheus ───────────────────────────────────
 management:
   endpoints:
     web:
       exposure:
         include: health, info, prometheus, metrics
   endpoint:
-    prometheus:
-      enabled: true
     health:
-      show-details: always
+      # /actuator/health is public (docker healthcheck); details only when logged in
+      show-details: when-authorized
+      probes:
+        enabled: true
   metrics:
     tags:
       application: ${spring.application.name}
+
+---
+# ── Docker profile (SPRING_PROFILES_ACTIVE=docker) ──────────
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+eureka:
+  instance:
+    hostname: discovery-server

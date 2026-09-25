@@ -1,6 +1,6 @@
 package com.ecol.authService.exception.globalException;
+import com.ecol.authService.exception.InternalServerRequestException.InternalServerErrorRequestException;
 import com.ecol.authService.exception.globalExceptionResponseHandler.GlobalExceptionResponseHandler;
-import com.ecol.authService.exception.InternalServerRequestException.InternalServerRequestException;
 import com.ecol.authService.exception.conflictRequestException.ConflictRequestException;
 import com.ecol.authService.exception.forbiddenRequestException.ForbiddenRequestException;
 import com.ecol.authService.exception.notFoundRequestException.NotFoundRequestException;
@@ -122,9 +122,9 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler( InternalServerRequestException.class)
+    @ExceptionHandler( InternalServerErrorRequestException.class)
     public ResponseEntity<GlobalExceptionResponseHandler> handleGlobalException(
-            InternalServerRequestException ex,
+            InternalServerErrorRequestException ex,
             HttpServletRequest request
     ) {
         return buildResponse(

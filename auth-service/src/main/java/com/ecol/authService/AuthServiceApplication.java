@@ -8,7 +8,7 @@ import static org.springframework.data.web.config.EnableSpringDataWebSupport.Pag
 @EnableDiscoveryClient
 @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 public class AuthServiceApplication {
-	public static void main(String[] args) {
+	static void main(String[] args) {
 		SpringApplication.run(AuthServiceApplication.class, args);
 	}
 }

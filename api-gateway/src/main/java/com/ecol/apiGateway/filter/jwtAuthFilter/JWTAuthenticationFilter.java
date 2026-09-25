@@ -68,7 +68,7 @@ public class JWTAuthenticationFilter implements WebFilter {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
 
-        } catch (JwtException e) {
+        } catch (Exception e) {
             log.warn("Invalid JWT at gateway: {}", e.getMessage());
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();

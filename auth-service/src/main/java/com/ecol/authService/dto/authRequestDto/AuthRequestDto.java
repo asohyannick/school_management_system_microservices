@@ -27,7 +27,5 @@ public record AuthRequestDto(
 				regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).*$",
 				message = "Password must contain uppercase, lowercase, number, and special character"
 		)
-		String password,
-		
-		Instant registeredAt
+		String password
 ) {}

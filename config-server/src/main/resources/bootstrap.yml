@@ -11,10 +11,6 @@ spring:
   application:
     name: config-server
 
-  config:
-    import:
-      - optional:file:../.env.properties
-
   # ── Native Config Source ──────────────────────────────
   profiles:
     active: native

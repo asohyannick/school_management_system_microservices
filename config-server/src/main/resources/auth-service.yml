@@ -76,9 +76,9 @@ firebase:
   client-email: ${FIREBASE_CLIENT_EMAIL}
   client-id: ${FIREBASE_CLIENT_ID}
 
-# ── Mailtrap ──────────────────────────────────────────────
-mailtrap:
-  api-token: ${MAILTRAP_API_TOKEN}
+# ── Resend ──────────────────────────────────────────────
+resend:
+  api-token: ${RESEND_API_TOKEN}
   from-email: ${MAIL_FROM}
   from-name: ${MAIL_FROM_NAME}
 

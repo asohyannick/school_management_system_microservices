@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM eclipse-temurin:25-jdk-alpine AS build
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ RUN ./mvnw dependency:go-offline -q
 COPY src/ src/
 RUN ./mvnw clean package -DskipTests -q
 
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM eclipse-temurin:25-jre-alpine AS runtime
 
 RUN addgroup -S sms && adduser -S sms -G sms
 USER sms

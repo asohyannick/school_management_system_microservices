@@ -1,4 +1,5 @@
 package com.ecol.authService.config.mailConfig;
+import com.ecol.authService.exception.badRequestException.BadRequestException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,7 @@ public class EmailConfigTemplate {
 		return String.valueOf(100000 + random.nextInt(900000));
 	}
 	
-	public void sendOtpEmail(String toEmail, String studentName, String otpCode) {
+	public void sendOtpEmail(String toEmail, String studentName, String otpCode) throws Exception {
 		try {
 			MimeMessage message = mailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -41,7 +42,7 @@ public class EmailConfigTemplate {
 			log.info("OTP email sent successfully to {}", toEmail);
 		} catch (Exception e) {
 			log.error("Failed to send OTP email to {}: {}", toEmail, e.getMessage());
-			throw new RuntimeException("Failed to send OTP email", e);
+			throw new BadRequestException("Failed to send OTP email", e);
 		}
 	}
 	

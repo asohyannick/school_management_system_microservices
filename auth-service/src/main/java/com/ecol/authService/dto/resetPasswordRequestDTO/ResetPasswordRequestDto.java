@@ -5,12 +5,6 @@ import jakarta.validation.constraints.Size;
 
 public record ResetPasswordRequestDto(
 		
-		@NotBlank(message = "Email is required")
-		String email,
-		
-		@NotBlank(message = "OTP code is required")
-		String otpCode,
-		
 		@NotBlank(message = "New password is required")
 		@Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
 		@Pattern(

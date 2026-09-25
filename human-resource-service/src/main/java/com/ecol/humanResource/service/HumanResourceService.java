@@ -1,5 +1,4 @@
 package com.ecol.humanResource.service;
-
 import com.ecol.humanResource.mapper.HumanResourceMapper;
 import com.ecol.humanResource.repository.HumanResourceRepository;
 import lombok.RequiredArgsConstructor;

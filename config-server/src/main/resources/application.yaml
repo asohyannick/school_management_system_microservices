@@ -16,16 +16,12 @@ eureka:
     lease-renewal-interval-in-seconds: 30
     lease-expiration-duration-in-seconds: 90
 
-# ── Kafka Shared Configuration ────────────────────────────
-spring:
-  config:
-    import:
-      - optional:file:../.env.properties
+# ── Spring (Kafka + Redis + Cloud) ───────────────────────
 
+  # ── Kafka ───────────────────────────────────────────────
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
 
-    # ── Producer defaults (all producer services) ─────────
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -35,7 +31,6 @@ spring:
         enable.idempotence: true
         spring.json.add.type.headers: false
 
-    # ── Consumer defaults (all consumer services) ─────────
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
@@ -44,32 +39,47 @@ spring:
       properties:
         spring.json.trusted.packages: "com.ecol.*"
 
-    # ── Listener ──────────────────────────────────────────
     listener:
       ack-mode: manual_immediate
 
-      # ── Redis Shared Configuration ──────────────────────────
-    data:
-        redis:
-          host: ${REDIS_HOST:redis}
-          port: ${REDIS_PORT:6379}
-          password: ${REDIS_PASSWORD:}
-          timeout: 2000ms
-          lettuce:
-            pool:
-              max-active: 10
-              max-idle: 5
-              min-idle: 1
-              max-wait: 1000ms
-            shutdown-timeout: 200ms
+  # ── Redis ───────────────────────────────────────────────
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 1
+          max-wait: 1000ms
+        shutdown-timeout: 200ms
 
-  # ── Spring Cloud Bus (Kafka) ──────────────────────────
+  # ── Spring Cloud Bus (Kafka) ─────────────────────────────
   cloud:
     bus:
       enabled: true
       destination: springCloudBus
 
-# ── Actuator & Prometheus (all services) ─────────────────
+# ── Auth-Service Kafka Topics ────────────────────────────
+# NOTE: These are NOT under spring.kafka — they are custom
+# properties injected via @Value("${kafka.topics.*}")
+kafka:
+  topics:
+    user-registered: auth.user.registered
+    user-login: auth.user.login
+    user-logout: auth.user.logout
+    otp-events: auth.otp.events
+    password-events: auth.password.events
+    account-status: auth.account.status
+    magiclink-events: auth.magiclink.events
+    google-login: auth.google.login
+    security-alerts: auth.security.alerts
+    audit-events: auth.audit.events
+
+# ── Actuator & Prometheus ────────────────────────────────
 management:
   endpoints:
     web:
@@ -84,7 +94,7 @@ management:
     tags:
       application: ${spring.application.name}
 
-# ── API Version (all services) ────────────────────────────
+# ── API Version ──────────────────────────────────────────
 api:
   version: ${API_VERSION:v1}
 
@@ -95,6 +105,7 @@ logging:
     org.springframework.kafka: INFO
     com.ecol: INFO
 
+# ── SpringDoc / Swagger ──────────────────────────────────
 springdoc:
   api-docs:
     enabled: true

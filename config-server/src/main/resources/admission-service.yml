@@ -45,6 +45,13 @@ spring:
         payment-completed: payment.completed  # ← listens to this
       group-id: admission-group
 
+# ── MinIO Object Storage ──────────────────────────────────
+minio:
+  url: ${MINIO_URL:http://localhost:9000}
+  username: ${MINIO_USERNAME}
+  password: ${MINIO_PASSWORD}
+  bucket: ${MINIO_BUCKET_REVIEWS}
+
 # ── Swagger / OpenAPI ─────────────────────────────────────
 springdoc:
   api-docs:

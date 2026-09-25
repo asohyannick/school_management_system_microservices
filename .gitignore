@@ -1,3 +1,4 @@
 .env.properties
 .idea
 .env
+.env.docker

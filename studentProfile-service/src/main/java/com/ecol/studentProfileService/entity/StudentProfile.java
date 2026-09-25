@@ -13,7 +13,6 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @Data
-@Builder
 public class StudentProfile {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)

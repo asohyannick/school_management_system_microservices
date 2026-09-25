@@ -1,0 +1,10 @@
+# Build context is the repo root — keep it small and keep secrets out of images
+.git
+.idea
+**/*.iml
+**/target
+.env
+.env.docker
+docker/
+monitoring/
+README*

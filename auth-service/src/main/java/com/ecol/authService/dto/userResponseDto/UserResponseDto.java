@@ -1,9 +1,8 @@
 package com.ecol.authService.dto.userResponseDto;
-
 import com.ecol.authService.enums.UserRole;
-
 import java.time.Instant;
 import java.util.UUID;
+
 public record UserResponseDto(
 		UUID id,
 		String firstName,
@@ -15,6 +14,8 @@ public record UserResponseDto(
 		boolean accountDeleted,
 		boolean accountSuspended,
 		boolean accountLocked,
+		String accessToken,
+		String refreshToken,
 		Instant createdAt,
 		Instant updatedAt
 

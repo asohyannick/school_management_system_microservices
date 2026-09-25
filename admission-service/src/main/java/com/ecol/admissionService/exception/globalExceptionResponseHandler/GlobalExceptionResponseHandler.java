@@ -24,5 +24,4 @@ public record GlobalExceptionResponseHandler(
 		
 		@Schema(description = "HTTP method", example = "GET")
 		String method
-
 ) {}
