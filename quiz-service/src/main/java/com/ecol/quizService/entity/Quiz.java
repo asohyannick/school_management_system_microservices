@@ -13,7 +13,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
 public class Quiz {
     @Id
 	@GeneratedValue (strategy = GenerationType.UUID)

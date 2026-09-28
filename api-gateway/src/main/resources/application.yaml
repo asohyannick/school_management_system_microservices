@@ -1,174 +1,247 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+api:
+  version: v1
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+  allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+  max-age: 1h
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+
 spring:
   application:
     name: api-gateway
 
+  threads:
+    virtual:
+      enabled: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/sms}
+
   cloud:
     gateway:
-      routes:
-        # ── API Routes ───────────────────────────────────
-        - id: auth-service
-          uri: lb://AUTH-SERVICE
-          predicates:
-            - Path=/api/${api.version}/auth/**
+      server:
+        webmvc:
+          routes:
+            # ── API Routes ───────────────────────────────────
+            - id: auth-service
+              uri: lb://auth-service
+              predicates:
+                - Path=/api/${api.version}/auth/**
 
-        - id: attendance-service
-          uri: lb://ATTENDANCE-SERVICE
-          predicates:
-            - Path=/api/${api.version}/attendance/**
+            - id: attendance-service
+              uri: lb://attendance-service
+              predicates:
+                - Path=/api/${api.version}/attendance/**
 
-        - id: admission-service
-          uri: lb://ADMISSION-SERVICE
-          predicates:
-            - Path=/api/${api.version}/admissions/**
+            - id: admission-service
+              uri: lb://admission-service
+              predicates:
+                - Path=/api/${api.version}/admissions/**
 
-        - id: course-service
-          uri: lb://COURSE-SERVICE
-          predicates:
-            - Path=/api/${api.version}/courses/**
+            - id: course-service
+              uri: lb://course-service
+              predicates:
+                - Path=/api/${api.version}/courses/**
 
-        - id: assignment-service
-          uri: lb://ASSIGNMENT-SERVICE
-          predicates:
-            - Path=/api/${api.version}/assignments/**
+            - id: assignment-service
+              uri: lb://assignment-service
+              predicates:
+                - Path=/api/${api.version}/assignments/**
 
-        - id: human-resource-service
-          uri: lb://HUMAN-RESOURCE-SERVICE
-          predicates:
-            - Path=/api/${api.version}/human-resources/**
+            - id: human-resource-service
+              uri: lb://human-resource-service
+              predicates:
+                - Path=/api/${api.version}/human-resources/**
 
-        - id: inventory-service
-          uri: lb://INVENTORY-SERVICE
-          predicates:
-            - Path=/api/${api.version}/inventory/**
+            - id: inventory-service
+              uri: lb://inventory-service
+              predicates:
+                - Path=/api/${api.version}/inventory/**
 
-        - id: notification-service
-          uri: lb://NOTIFICATION-SERVICE
-          predicates:
-            - Path=/api/${api.version}/notifications/**
+            - id: notification-service
+              uri: lb://notification-service
+              predicates:
+                - Path=/api/${api.version}/notifications/**
 
-        - id: payment-service
-          uri: lb://PAYMENT-SERVICE
-          predicates:
-            - Path=/api/${api.version}/payments/**
+            - id: payment-service
+              uri: lb://payment-service
+              predicates:
+                - Path=/api/${api.version}/payments/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: payment-service
+                    fallbackUri: forward:/fallback/payment-service
+                - name: Retry
+                  args:
+                    retries: 2
+                    methods: GET
+                    series: SERVER_ERROR
 
-        - id: quiz-service
-          uri: lb://QUIZ-SERVICE
-          predicates:
-            - Path=/api/${api.version}/quizzes/**
+            - id: quiz-service
+              uri: lb://quiz-service
+              predicates:
+                - Path=/api/${api.version}/quizzes/**
 
-        - id: review-service
-          uri: lb://REVIEW-SERVICE
-          predicates:
-            - Path=/api/${api.version}/reviews/**
+            - id: review-service
+              uri: lb://review-service
+              predicates:
+                - Path=/api/${api.version}/reviews/**
 
-        - id: staff-profile-service
-          uri: lb://STAFF-PROFILE-SERVICE
-          predicates:
-            - Path=/api/${api.version}/staff-profiles/**
+            - id: staff-profile-service
+              uri: lb://staff-profile-service
+              predicates:
+                - Path=/api/${api.version}/staff-profiles/**
 
-        - id: student-profile-service
-          uri: lb://STUDENT-PROFILE-SERVICE
-          predicates:
-            - Path=/api/${api.version}/student-profiles/**
+            - id: student-profile-service
+              uri: lb://student-profile-service
+              predicates:
+                - Path=/api/${api.version}/student-profiles/**
 
-        # ── Swagger Docs Routes ──────────────────────────
-        - id: auth-service-docs
-          uri: lb://AUTH-SERVICE
-          predicates:
-            - Path=/v3/api-docs/auth-service
-          filters:
-            - RewritePath=/v3/api-docs/auth-service, /v3/api-docs
+            # ── Swagger Docs Routes ──────────────────────────
+            - id: auth-service-docs
+              uri: lb://auth-service
+              predicates:
+                - Path=/v3/api-docs/auth-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: attendance-service-docs
-          uri: lb://ATTENDANCE-SERVICE
-          predicates:
-            - Path=/v3/api-docs/attendance-service
-          filters:
-            - RewritePath=/v3/api-docs/attendance-service, /v3/api-docs
+            - id: attendance-service-docs
+              uri: lb://attendance-service
+              predicates:
+                - Path=/v3/api-docs/attendance-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: admission-service-docs
-          uri: lb://ADMISSION-SERVICE
-          predicates:
-            - Path=/v3/api-docs/admission-service
-          filters:
-            - RewritePath=/v3/api-docs/admission-service, /v3/api-docs
+            - id: admission-service-docs
+              uri: lb://admission-service
+              predicates:
+                - Path=/v3/api-docs/admission-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: course-service-docs
-          uri: lb://COURSE-SERVICE
-          predicates:
-            - Path=/v3/api-docs/course-service
-          filters:
-            - RewritePath=/v3/api-docs/course-service, /v3/api-docs
+            - id: course-service-docs
+              uri: lb://course-service
+              predicates:
+                - Path=/v3/api-docs/course-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: assignment-service-docs
-          uri: lb://ASSIGNMENT-SERVICE
-          predicates:
-            - Path=/v3/api-docs/assignment-service
-          filters:
-            - RewritePath=/v3/api-docs/assignment-service, /v3/api-docs
+            - id: assignment-service-docs
+              uri: lb://assignment-service
+              predicates:
+                - Path=/v3/api-docs/assignment-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: human-resource-service-docs
-          uri: lb://HUMAN-RESOURCE-SERVICE
-          predicates:
-            - Path=/v3/api-docs/human-resource-service
-          filters:
-            - RewritePath=/v3/api-docs/human-resource-service, /v3/api-docs
+            - id: human-resource-service-docs
+              uri: lb://human-resource-service
+              predicates:
+                - Path=/v3/api-docs/human-resource-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: inventory-service-docs
-          uri: lb://INVENTORY-SERVICE
-          predicates:
-            - Path=/v3/api-docs/inventory-service
-          filters:
-            - RewritePath=/v3/api-docs/inventory-service, /v3/api-docs
+            - id: inventory-service-docs
+              uri: lb://inventory-service
+              predicates:
+                - Path=/v3/api-docs/inventory-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: notification-service-docs
-          uri: lb://NOTIFICATION-SERVICE
-          predicates:
-            - Path=/v3/api-docs/notification-service
-          filters:
-            - RewritePath=/v3/api-docs/notification-service, /v3/api-docs
+            - id: notification-service-docs
+              uri: lb://notification-service
+              predicates:
+                - Path=/v3/api-docs/notification-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: payment-service-docs
-          uri: lb://PAYMENT-SERVICE
-          predicates:
-            - Path=/v3/api-docs/payment-service
-          filters:
-            - RewritePath=/v3/api-docs/payment-service, /v3/api-docs
+            - id: payment-service-docs
+              uri: lb://payment-service
+              predicates:
+                - Path=/v3/api-docs/payment-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: quiz-service-docs
-          uri: lb://QUIZ-SERVICE
-          predicates:
-            - Path=/v3/api-docs/quiz-service
-          filters:
-            - RewritePath=/v3/api-docs/quiz-service, /v3/api-docs
+            - id: quiz-service-docs
+              uri: lb://quiz-service
+              predicates:
+                - Path=/v3/api-docs/quiz-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: review-service-docs
-          uri: lb://REVIEW-SERVICE
-          predicates:
-            - Path=/v3/api-docs/review-service
-          filters:
-            - RewritePath=/v3/api-docs/review-service, /v3/api-docs
+            - id: review-service-docs
+              uri: lb://review-service
+              predicates:
+                - Path=/v3/api-docs/review-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: staff-profile-service-docs
-          uri: lb://STAFF-PROFILE-SERVICE
-          predicates:
-            - Path=/v3/api-docs/staff-profile-service
-          filters:
-            - RewritePath=/v3/api-docs/staff-profile-service, /v3/api-docs
+            - id: staff-profile-service-docs
+              uri: lb://staff-profile-service
+              predicates:
+                - Path=/v3/api-docs/staff-profile-service
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: student-profile-service-docs
-          uri: lb://STUDENT-PROFILE-SERVICE
-          predicates:
-            - Path=/v3/api-docs/student-profile-service
-          filters:
-            - RewritePath=/v3/api-docs/student-profile-service, /v3/api-docs
+            - id: student-profile-service-docs
+              uri: lb://student-profile-service
+              predicates:
+                - Path=/v3/api-docs/student-profile-service
+              filters:
+                - SetPath=/v3/api-docs
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
+# ── Rate limiting (top level, not under spring:) ─────────
+gateway:
+  rate-limit:
+    capacity: 500
+    window: 5m
 
 # ── Springdoc Gateway Config ──────────────────────────────
 springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
     config-url: /v3/api-docs/swagger-config
+    use-root-path: true
+    display-request-duration: true
+    groups-order: ASC
+    operations-sorter: method
+    disable-swagger-default-url: true
     urls:
       - name: Auth Service
         url: /v3/api-docs/auth-service
@@ -196,11 +269,3 @@ springdoc:
         url: /v3/api-docs/staff-profile-service
       - name: StudentProfile Service
         url: /v3/api-docs/student-profile-service
-    use-root-path: true
-    display-request-duration: true
-    groups-order: ASC
-    operations-sorter: method
-    disable-swagger-default-url: true
-  api-docs:
-    enabled: true
-    path: /v3/api-docs

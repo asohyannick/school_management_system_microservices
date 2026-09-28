@@ -1,20 +1,17 @@
 package com.ecol.apiGateway.exception.gatewayErrorResponse;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
-import lombok.Data;
 
 import java.time.Instant;
 
-@Data
 @Builder
-public class GatewayErrorResponse {
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private Instant timestamp;
-    private int status;
-    private String error;
-    private String message;
-    private String path;
-    private String method;
-}
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record GatewayErrorResponse(
+        Instant timestamp,
+        int status,
+        String error,
+        String message,
+        String path,
+        String method
+) {}

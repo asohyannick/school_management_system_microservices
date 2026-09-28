@@ -1,48 +1,42 @@
 package com.ecol.apiGateway.config.swaggerAggregatorConfig.swaggerAggregatorConfig;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springdoc.core.models.GroupedOpenApi;
 import org.springdoc.core.properties.AbstractSwaggerUiConfigProperties.SwaggerUrl;
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
-import java.util.Set;
-import java.util.LinkedHashSet;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.function.RouterFunction;
+import org.springframework.web.servlet.function.ServerResponse;
 
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+/**
+ * Builds one docs route per service listed under springdoc.swagger-ui.urls:
+ *   GET /v3/api-docs/{service-id}  ->  lb://{service-id}/v3/api-docs
+ */
 @Configuration
 public class SwaggerAggregatorConfig {
 
-    @Value("${api.version}")
-    private String apiVersion;
+    private static final String DOCS_PREFIX = "/v3/api-docs/";
+
     @Bean
-    public SwaggerUiConfigProperties swaggerUiConfigProperties(
-            RouteDefinitionLocator routeDefinitionLocator
-    ) {
-        SwaggerUiConfigProperties properties = new SwaggerUiConfigProperties();
-
-        Set<SwaggerUrl> urls = new LinkedHashSet<>();
-        routeDefinitionLocator.getRouteDefinitions()
-                .filter(route -> route.getId() != null
-                        && !route.getId().startsWith("ReactiveCompositeDiscoveryClient"))
-                .subscribe(route -> {
-                    String serviceId = route.getId();
-                    urls.add(new SwaggerUrl(
-                            serviceId,
-                            "/v3/api-docs/" + serviceId,
-                            serviceId.replace("-", " ")
-                                    .toUpperCase()
-                    ));
-                });
-
-        properties.setUrls(urls);
-        return properties;
+    public RouterFunction<ServerResponse> apiDocsRoutes(SwaggerUiConfigProperties swaggerUiProperties) {
+        return swaggerUiProperties.getUrls().stream()
+                .map(SwaggerUrl::getUrl)
+                .filter(url -> url.startsWith(DOCS_PREFIX))
+                .map(url -> url.substring(DOCS_PREFIX.length()))
+                .map(this::docsRoute)
+                .reduce(RouterFunction::and)
+                .orElseThrow(() -> new IllegalStateException(
+                        "No services configured under springdoc.swagger-ui.urls"));
     }
 
-    @Bean
-    public GroupedOpenApi gatewayApi() {
-        return GroupedOpenApi.builder()
-                .group("api-gateway")
-                .pathsToMatch("/**")
+    private RouterFunction<ServerResponse> docsRoute(String serviceId) {
+        return route(serviceId + "-docs")
+                .GET(DOCS_PREFIX + serviceId, http())
+                .before(setPath("/v3/api-docs"))
+                .filter(lb(serviceId))
                 .build();
     }
 }

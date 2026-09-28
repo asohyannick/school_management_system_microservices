@@ -1,4 +1,5 @@
-package com.ecol.apiGateway.filter.gatewayAccessDeniedHandler;
+package com.ecol.apiGateway.exception.gatewayAccessDeniedHandler;
+
 import com.ecol.apiGateway.exception.errorResponseWriter.ErrorResponseWriter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

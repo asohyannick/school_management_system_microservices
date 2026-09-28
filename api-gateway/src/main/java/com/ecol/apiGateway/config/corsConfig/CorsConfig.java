@@ -1,55 +1,54 @@
 package com.ecol.apiGateway.config.corsConfig;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+import java.time.Duration;
 import java.util.List;
 
 @Configuration
+@EnableConfigurationProperties(CorsConfig.CorsProperties.class)
 public class CorsConfig {
 
-    @Value("${cors.allowed-origins}")
-    private String allowedOrigins;
-
-    @Value("${cors.allowed-methods}")
-    private String allowedMethods;
+    @ConfigurationProperties(
+            prefix = "cors"
+    )
+    public record CorsProperties(
+            @DefaultValue("http://localhost:3000") List<String> allowedOrigins,
+            @DefaultValue({"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}) List<String> allowedMethods,
+            @DefaultValue("1h") Duration maxAge
+    ) {}
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource(CorsProperties properties) {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        List<String> origins = Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .toList();
-        configuration.setAllowedOrigins(origins);
-
-        List<String> methods = Arrays.stream(allowedMethods.split(","))
-                .map(String::trim)
-                .toList();
-        configuration.setAllowedMethods(methods);
+        configuration.setAllowedOrigins(properties.allowedOrigins());
+        configuration.setAllowedMethods(properties.allowedMethods());
 
         configuration.setAllowedHeaders(List.of(
                 "Authorization",
                 "Content-Type",
                 "Accept",
-                "X-Requested-With",
-                "Origin",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers"
+                "X-Requested-With"
         ));
 
         configuration.setExposedHeaders(List.of(
-                "Authorization",
-                "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials"
+                "X-RateLimit-Limit",
+                "X-RateLimit-Remaining",
+                "Retry-After",
+                "Location",
+                "Content-Disposition"
         ));
 
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
+
+        configuration.setAllowCredentials(false);
+        configuration.setMaxAge(properties.maxAge());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

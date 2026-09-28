@@ -1,5 +1,4 @@
 package com.ecol.authService.service;
-import com.ecol.authService.config.JwtConfig.JWTConfig;
 import com.ecol.authService.config.mailConfig.EmailConfigTemplate;
 import com.ecol.authService.mapper.UserMapper;
 import com.ecol.authService.repository.UserRepository;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 		 private  final UserRepository userRepository;
-		 private final JWTConfig jwtConfig;
 		 private  final PasswordEncoder passwordEncoder;
 		 private final UserMapper userMapper;
 		 private final EmailConfigTemplate emailConfigTemplate;
